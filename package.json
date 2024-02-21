@@ -2,14 +2,16 @@
   "name": "rinha-de-backend-elysia",
   "version": "1.0.50",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "bun test ./test/**.test.ts",
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@prisma/client": "5.10.1",
     "elysia": "latest"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "prisma": "^5.10.1"
   },
   "module": "src/index.js"
 }
