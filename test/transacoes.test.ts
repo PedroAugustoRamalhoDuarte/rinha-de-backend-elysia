@@ -23,7 +23,7 @@ describe('POST /clientes/:id/transacoes', () => {
       body: JSON.stringify({
         valor: 100,
         tipo: 'd',
-        descricao: 'Compra de pão'
+        descricao: 'Teste'
       })
     })
     const res = await app.fetch(req);

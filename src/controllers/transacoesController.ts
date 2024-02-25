@@ -1,9 +1,26 @@
-import {Elysia} from "elysia";
+import {Elysia, t} from "elysia";
 import {PrismaClient} from '@prisma/client'
 
 const db = new PrismaClient()
 
+let BodyType = t.Object({
+  // TODO: Only be integer
+  valor: t.Number(
+    {
+      minimum: 0,
+    }
+  ),
+  tipo: t.String({
+    enum: ['d', 'c']
+  }),
+  descricao: t.String({
+      minLength: 1,
+      maxLength: 10
+    }
+  )
+})
 const transacoesController = (app: Elysia) => {
+
   app.post("/clientes/:id/transacoes", async ({body, params}) => {
     const clientId = parseInt(params.id)
     const client = await db.$transaction(async (tx) => {
@@ -21,6 +38,7 @@ const transacoesController = (app: Elysia) => {
             }
           })
 
+          // TODO: Check limits validations
           const updatedClient = await tx.clientes.update({
             where: {id: clientId},
             data: {
@@ -41,7 +59,7 @@ const transacoesController = (app: Elysia) => {
       limite: client.limite,
       saldo: client.saldo,
     }
-  });
+  }, {body: BodyType});
 
   return Promise.resolve(app);
 }
