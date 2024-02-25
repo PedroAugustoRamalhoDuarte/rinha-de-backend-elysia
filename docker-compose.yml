@@ -1,0 +1,72 @@
+version: "3.5"
+
+x-environments: &env
+  DATABASE_URL: postgres://rinha_de_backend:postgres@db/rinha_de_backend_production
+
+services:
+  api01: &api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: api01
+    environment:
+      <<: *env
+      PORT: 3001
+    depends_on:
+      - db
+    ports:
+      - "3001:3001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.45"
+          memory: "170MB"
+
+  api02:
+    <<: *api
+    hostname: api02
+    environment:
+      <<: *env
+      PORT: 3002
+    ports:
+      - "3002:3002"
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api01
+      - api02
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: "50MB"
+
+  db:
+    image: postgres:latest
+    hostname: db
+    environment:
+      - POSTGRES_USER=rinha_de_backend
+      - POSTGRES_DATABASE=rinha_de_backend_production
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "160MB"
+
+networks:
+  host:
+    name: host
+    external: true
