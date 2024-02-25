@@ -3,7 +3,8 @@
   "version": "1.0.50",
   "scripts": {
     "test": "bun test ./test/**.test.ts",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "5.10.1",
