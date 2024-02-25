@@ -3,37 +3,47 @@ import {PrismaClient} from '@prisma/client'
 
 const db = new PrismaClient()
 
-export const transacoesController = (app: Elysia) => {
-  return app.post("/clientes/:id/transacoes", async ({query, params}) => {
-      const clientId = parseInt(params.id)
-      const client = await db.$transaction(async (tx) => {
-        const client = await tx.clientes.findUnique({
-          where: {id: clientId},
-        })
+const transacoesController = (app: Elysia) => {
+  app.post("/clientes/:id/transacoes", async ({body, params}) => {
+    const clientId = parseInt(params.id)
+    const client = await db.$transaction(async (tx) => {
+        try {
+          const client = await tx.clientes.findUnique({
+            where: {id: clientId},
+          })
 
-        console.log("client", client)
+          const transaction = await tx.transacoes.create({
+            data: {
+              valor: body.valor,
+              tipo: body.tipo,
+              descricao: body.descricao,
+              clienteId: clientId
+            }
+          })
 
-        tx.transacoes.create({
-          data: {
-            valor: query.valor,
-            tipo: query.tipo,
-            descricao: query.descricao,
-            clienteId: clientId
-          }
-        })
+          const updatedClient = await tx.clientes.update({
+            where: {id: clientId},
+            data: {
+              saldo: body.tipo === 'd' ? client.saldo - body.valor : client.saldo + body.valor
+            }
+          })
 
-        const updatedClient = tx.clientes.update({
-          where: {id: clientId},
-          data: {
-            saldo: query.tipo === 'debito' ? client.saldo - query.valor : client.saldo + query.valor
-          }
-        })
-      })
+          return updatedClient;
+        } catch (error) {
+          console.error(error)
 
-      return {
-        limite: client.limite,
-        saldo: client.saldo,
+          return {error: error.message}
+        }
       }
+    );
+
+    return {
+      limite: client.limite,
+      saldo: client.saldo,
     }
-  );
+  });
+
+  return Promise.resolve(app);
 }
+
+export default transacoesController;

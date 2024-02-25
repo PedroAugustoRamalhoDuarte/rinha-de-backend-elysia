@@ -27,5 +27,6 @@ model Transacoes {
   clienteId Int
   valor     Int
   tipo      String
+  descricao String
   createdAt DateTime @default(now())
 }
